@@ -68,17 +68,16 @@ export default function Page() {
     setCurrentMessage(msg);
   };
 
-const handleYesClick = () => {
-  setIsAccepted(true);
+  const handleYesClick = () => {
+    setIsAccepted(true);
 
-  const audio = new Audio(
-    "https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3"
-  );
-  audio.play().catch(() => {});
+    const audio = new Audio(
+      "https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3"
+    );
+    audio.play().catch(() => {});
 
-  triggerConfetti();
-};
-
+    triggerConfetti();
+  };
 
   const triggerConfetti = () => {
     const duration = 3000;
@@ -115,51 +114,58 @@ const handleYesClick = () => {
     })();
   };
 
-  const sendEmailNotification = () => {
-    // console.log("SERVICE:", process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID);
-    // console.log("TEMPLATE:", process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID);
-    // console.log("PUBLIC:", process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY);
+  // Effect to handle email sending when accepted
+  useEffect(() => {
+    if (isAccepted) {
+      // Small delay to ensure UI updates first (mobile optimization)
+      const timer = setTimeout(() => {
+        sendEmailNotification();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isAccepted]);
 
+  const sendEmailNotification = async () => {
     const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
     const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
     const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
 
+    // console.log("Attempting to send email...");
+    // console.log("Service ID:", serviceId ? "Present" : "Missing");
+    // console.log("Template ID:", templateId ? "Present" : "Missing");
+    // console.log("Public Key:", publicKey ? "Present" : "Missing");
+
     if (!serviceId || !templateId || !publicKey) {
-      console.warn("EmailJS keys are missing. Email not sent.");
+      console.error("EmailJS keys are missing. Email not sent.");
+      alert("Error: EmailJS keys are missing in .env.local");
       return;
     }
 
-    const templateParams = {
-      to_email: "arunjs2703@gmail.com",
-      message:
-        "Sanjana clicked YES 🥰\nYour Valentine proposal was accepted 💕\nThis message was sent automatically when the YES button was clicked.",
-      from_name: "Valentine App",
-    };
- emailjs.init(publicKey);
-    emailjs.send(serviceId, templateId, templateParams, publicKey).then(
-      (response) => {
-        console.log("Email sent successfully!", response.status, response.text);
-      },
-      (error) => {
-        console.error("Failed to send email:", error);
-      }
-    );
+    try {
+      // Initialize EmailJS with public key (optional but good practice)
+      // emailjs.init(publicKey);
 
+      const templateParams = {
+        to_email: "arunjs2703@gmail.com",
+        message:
+          "Sanjana clicked YES 🥰\nYour Valentine proposal was accepted 💕\nThis message was sent automatically when the YES button was clicked.",
+        from_name: "Valentine App",
+      };
 
+      const response = await emailjs.send(
+        serviceId,
+        templateId,
+        templateParams,
+        publicKey // Pass public key as 4th argument
+      );
 
-
-
-  };
-
-
-  useEffect(() => {
-    if (isAccepted) {
-      setTimeout(() => {
-        sendEmailNotification();
-      }, 800); // mobile safe delay
+      console.log("Email sent successfully!", response.status, response.text);
+      alert("Email sent successfully! 💌");
+    } catch (error) {
+      console.error("Failed to send email:", error);
+      alert("Failed to send email. Check console for details.");
     }
-  }, [isAccepted]);
-
+  };
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-linear-to-br from-[#FFF0F5] to-[#FFE4E1] p-4 font-sans">
