@@ -68,21 +68,17 @@ export default function Page() {
     setCurrentMessage(msg);
   };
 
-  const handleYesClick = () => {
-    setIsAccepted(true);
+const handleYesClick = () => {
+  setIsAccepted(true);
 
-    // Play audio
-    const audio = new Audio(
-      "https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3"
-    );
-    audio.play().catch((e) => console.log("Audio play failed:", e));
+  const audio = new Audio(
+    "https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3"
+  );
+  audio.play().catch(() => {});
 
-    // Fire confetti
-    triggerConfetti();
+  triggerConfetti();
+};
 
-    // Send email silently
-    sendEmailNotification();
-  };
 
   const triggerConfetti = () => {
     const duration = 3000;
@@ -139,7 +135,7 @@ export default function Page() {
         "Sanjana clicked YES 🥰\nYour Valentine proposal was accepted 💕\nThis message was sent automatically when the YES button was clicked.",
       from_name: "Valentine App",
     };
-
+ emailjs.init(publicKey);
     emailjs.send(serviceId, templateId, templateParams, publicKey).then(
       (response) => {
         console.log("Email sent successfully!", response.status, response.text);
@@ -148,7 +144,22 @@ export default function Page() {
         console.error("Failed to send email:", error);
       }
     );
+
+
+
+
+
   };
+
+
+  useEffect(() => {
+    if (isAccepted) {
+      setTimeout(() => {
+        sendEmailNotification();
+      }, 800); // mobile safe delay
+    }
+  }, [isAccepted]);
+
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-linear-to-br from-[#FFF0F5] to-[#FFE4E1] p-4 font-sans">
